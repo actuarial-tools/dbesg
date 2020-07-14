@@ -2,15 +2,22 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 class SmithWilson:
-    
     """
+        Description
+        -----------
+        Smith-Wilson Method를 이용하여 보간ㆍ보외 수행
+
         Example
         -------
             >>> maturity = np.array([1, 3, 5, 10, 20, 30])
             >>> rate = np.array([0.01301, 0.01325, 0.01415, 0.01600, 0.01625, 0.01604])
             >>> alpha, ufr = 0.1, 0.052
             >>> sw = SmithWilson(alpha, ufr)
-            >>> sw.set_zeta(maturity, rate)
+            >>> sw.set_params(maturity, rate)
+            >>> t = np.linspace(0, 100, 1201)
+            >>> spot = sw.spot_rate(t)
+            >>> df = sw.discount_factor(t)
+            >>> forward = sw.forward_rate(t, 1/12)
     """
     
     def __init__(self, alpha, ufr):
@@ -28,15 +35,16 @@ class SmithWilson:
         df = (-self.ufr)**order*np.exp(-self.ufr*t)+self._wilson(t[:, None], self.u, self.alpha, order)@self.zeta
         return df
 
-    def set_zeta(self, maturity, rate):
+    def set_params(self, maturity, rate):
         """
             Description
             -----------
+            α 및 UFR은 사전에 주어져야 함
             관찰 금리 데이터를 이용해 ζ를 계산 후 객체 내에 저장
 
             Warning
             -------
-            입력할 때 연단위(Annually compounded) 금리를 넣을 것
+            입력할 때 연단위금리(annually compounded annual rate)를 넣을 것
         """
 
         m = 1/(1+rate)**maturity
@@ -85,6 +93,7 @@ class SmithWilson:
             Description
             -----------
             순간선도이자율(f(t))를 계산
+            continuously compounded
             instantaneous_forward_rate(t) ≒ forward_rate(t, 1e-6, compounded="continuously")
             1st derivatives까지 계산 가능함
         """
@@ -109,3 +118,102 @@ class SmithWilson:
         else:
             raise Exception('유효한 order가 아닙니다.')
         return W
+
+
+class NelsonSiegel:
+    """
+        Description
+        -----------
+        Nelson-Siegel Model를 이용하여 금리기간구조 모형화
+
+        Example
+        -------
+            >>> maturity = np.array([1, 3, 5, 10, 20, 30])
+            >>> rate = np.array([0.01301, 0.01325, 0.01415, 0.01600, 0.01625, 0.01604])
+            >>> ns = NelsonSiegel()
+            >>> ns.set_params(maturity, rate)
+            >>> t = np.linspace(0, 100, 1201)
+            >>> spot = ns.spot_rate(t)
+            >>> df = ns.discount_factor(t)
+            >>> forward = ns.forward_rate(t, 1/12)
+    """
+    
+    def set_params(self, maturity, rate):
+        """
+            Description
+            -----------
+            관찰 금리 데이터를 이용해 λ와 β를 계산 후 객체 내에 저장
+
+            Warning
+            -------
+            입력할 때 연속단위금리(continuously compounded annual rate)를 넣을 것
+        """
+
+        def obj_fun(lambda_):
+            design_matrix = np.c_[np.ones_like(maturity), (1-np.exp(-lambda_*maturity))/(lambda_*maturity), (1-np.exp(-lambda_*maturity))/(lambda_*maturity)-np.exp(-lambda_*maturity)]
+            beta = np.linalg.inv(design_matrix.T@design_matrix)@design_matrix.T@rate
+            error = np.sum((rate-design_matrix@beta)**2)
+            return error
+        res = minimize_scalar(obj_fun, method='bounded', bounds=(1e-3,1), options={'disp':False})
+        self.lambda_ = res.x
+        design_matrix = np.c_[np.ones_like(maturity), (1-np.exp(-self.lambda_*maturity))/(self.lambda_*maturity), (1-np.exp(-self.lambda_*maturity))/(self.lambda_*maturity)-np.exp(-self.lambda_*maturity)]
+        self.beta = np.linalg.inv(design_matrix.T@design_matrix)@design_matrix.T@rate
+    
+    def spot_rate(self, t, compounded='continuously'):
+        """
+            Description
+            -----------
+            현물이자율(r(t))를 계산
+        """
+
+        t = np.fmax(t, 1e-6)
+        design_matrix = np.c_[np.ones_like(t), (1-np.exp(-self.lambda_*t))/(self.lambda_*t), (1-np.exp(-self.lambda_*t))/(self.lambda_*t)-np.exp(-self.lambda_*t)]
+        rate = design_matrix@self.beta
+        if compounded == 'annually':
+            rate = np.exp(rate)-1
+        elif compounded == 'continuously':
+            pass
+        else:
+            raise Exception('compounded 입력 예외')
+        return rate
+    
+    def discount_factor(self, t):
+        """
+            Description
+            -----------
+            할인요소(P(t))를 계산
+        """
+
+        df = np.exp(-self.spot_rate(t, 'continuously'))
+        return df
+
+    def forward_rate(self, t, s, compounded='annually'):
+        """
+            Description
+            -----------
+            선도이자율(f(t, t+s))를 계산
+        """
+
+        if s<0:
+            raise Exception("s < 0 예외")
+        if compounded == 'annually':
+            rate = (self.discount_factor(t)/self.discount_factor(t+s))**(1/s)-1
+        elif compounded == 'continuously':
+            rate = 1/s*np.log(self.discount_factor(t)/self.discount_factor(t+s))
+        else:
+            raise Exception('compounded 입력 예외')
+        return rate
+    
+    def instantaneous_forward_rate(self, t):
+        """
+            Description
+            -----------
+            순간선도이자율(f(t))를 계산
+            continuously compounded
+            instantaneous_forward_rate(t) ≒ forward_rate(t, 1e-6, compounded="continuously")
+        """
+
+        t = np.fmax(t, 1e-6)
+        design_matrix = np.c_[np.ones_like(t), np.exp(-self.lambda_*t), self.lambda_*t*np.exp(-self.lambda_*t)]
+        rate = design_matrix@self.beta
+        return rate

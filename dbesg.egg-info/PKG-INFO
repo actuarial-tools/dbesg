@@ -1,12 +1,14 @@
 Metadata-Version: 2.1
 Name: dbesg
-Version: 0.0.2
+Version: 0.0.3
 Summary: Economic Scenario Generator
 Home-page: https://github.com/lee3jjang/dbesg
 Author: Lee Sang Jin
 Author-email: lee3jjang@gmail.com
 License: UNKNOWN
 Description: # dbesg
+        
+        this package is dbesg.
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
