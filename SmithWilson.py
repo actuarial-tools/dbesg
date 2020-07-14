@@ -22,7 +22,7 @@ class SmithWilson:
             Description
             -----------
             할인요소(P(t))를 계산
-            P의 2nd derivatives까지 계산 가능함
+            2nd derivatives까지 계산 가능함
         """
 
         df = (-self.ufr)**order*np.exp(-self.ufr*t)+self._wilson(t[:, None], self.u, self.alpha, order)@self.zeta
@@ -81,13 +81,21 @@ class SmithWilson:
         return rate
     
     def instantaneous_forward_rate(self, t, order=0):
+        """
+            Description
+            -----------
+            순간선도이자율(f(t))를 계산
+            instantaneous_forward_rate(t) ≒ forward_rate(t, 1e-6, compounded="continuously")
+            1st derivatives까지 계산 가능함
+        """
+
         if order==0:
             rate = -self.discount_factor(t, 1)/self.discount_factor(t, 0)
         elif order==1:
             rate = 1/self.discount_factor(t, 0)*(-self.discount_factor(t, 1)**2/self.discount_factor(t, 0)+self.discount_factor(t, 2))
         else:
             raise Exception('유효한 order가 아닙니다.')
-        return np.exp(rate)-1
+        return rate
     
     def _wilson(self, t, u, alpha, order=0):
         if order == 0:
