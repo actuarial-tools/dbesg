@@ -1,5 +1,6 @@
-/build/
-/build/**
-/dbesg.egg-info/
-/dist/
+build/
+build/**
+dbesg.egg-info/
+dist/
+dist/**
 __pycache__
