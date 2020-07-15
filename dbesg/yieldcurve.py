@@ -28,8 +28,8 @@ class SmithWilson:
         """
             Description
             -----------
-            할인요소(P(t))를 계산
-            2nd derivatives까지 계산 가능함
+            ㆍ할인요소(P(t))를 계산
+            ㆍ2nd derivatives까지 계산 가능함
         """
 
         df = (-self.ufr)**order*np.exp(-self.ufr*t)+self._wilson(t[:, None], self.u, self.alpha, order)@self.zeta
@@ -39,8 +39,8 @@ class SmithWilson:
         """
             Description
             -----------
-            α 및 UFR은 사전에 주어져야 함
-            관찰 금리 데이터를 이용해 ζ를 계산 후 객체 내에 저장
+            ㆍα 및 UFR은 사전에 주어져야 함
+            ㆍ관찰 금리 데이터를 이용해 ζ를 계산 후 u와 함께 객체 내에 저장
 
             Warning
             -------
@@ -53,6 +53,43 @@ class SmithWilson:
         W = self._wilson(maturity[:, None], maturity, self.alpha)
         self.zeta = np.linalg.inv(W)@(m-mu)
         self.u = maturity.copy()
+
+    def set_alpha(self, maturity, rate, cp=60, eps=1e-4, inplace=False):
+        """
+            Description
+            -----------
+            ㆍConvergence Point에서 오차(LTFR과 intantaneous forward rate (at CP)의 차이 절대값)가 ε가 되게 하는 α 설정
+            ㆍLTFR와 intantaneous forward rate는 continuously compounded 기준으로 계산함
+            ㆍinplace=True로 설정하면 parameter(u, ζ)이 객체 내에 설정됨
+
+            Warning
+            -------
+            입력할 때 연단위금리(annually compounded annual rate)를 넣을 것
+        """
+
+        m = 1/(1+rate)**maturity
+        mu = np.exp(-self.ufr*maturity)
+        
+        def obj_fun(alpha):
+            W = self._wilson(maturity[:, None], maturity, alpha)
+            zeta = (m-mu)@np.linalg.inv(W)
+            W_T = self._wilson(cp, maturity, alpha)
+            derivW_T = self._wilson(cp, maturity, alpha, order=1)
+            bond0_T = np.exp(-self.ufr*cp) + W_T@zeta
+            bond1_T = -self.ufr*np.exp(-self.ufr*cp)+derivW_T@zeta
+            forward_T = -bond1_T/bond0_T
+            error = abs(eps-.5e-5-abs(self.ufr-forward_T)) # 금감원 optimizer 그대로 복제할 경우 수정 필요
+            return error
+        
+        alpha = minimize_scalar(obj_fun, method='bounded', bounds=(1e-4,1), options={'disp':False}).x
+        
+        if inplace:
+            self.alpha = alpha
+            W = self._wilson(maturity[:, None], maturity, self.alpha)
+            self.zeta = np.linalg.inv(W)@(m-mu)
+            self.u = maturity.copy()
+        else:
+            return alpha
         
     def spot_rate(self, t, compounded='annually'):
         """
@@ -92,10 +129,10 @@ class SmithWilson:
         """
             Description
             -----------
-            순간선도이자율(f(t))를 계산
-            continuously compounded
-            instantaneous_forward_rate(t) ≒ forward_rate(t, 1e-6, compounded="continuously")
-            1st derivatives까지 계산 가능함
+            ㆍ순간선도이자율(f(t))를 계산
+            ㆍcontinuously compounded
+            ㆍinstantaneous_forward_rate(t) ≒ forward_rate(t, 1e-6, compounded="continuously")
+            ㆍ1st derivatives까지 계산 가능함
         """
 
         if order==0:
@@ -208,9 +245,9 @@ class NelsonSiegel:
         """
             Description
             -----------
-            순간선도이자율(f(t))를 계산
-            continuously compounded
-            instantaneous_forward_rate(t) ≒ forward_rate(t, 1e-6, compounded="continuously")
+            ㆍ순간선도이자율(f(t))를 계산
+            ㆍcontinuously compounded
+            ㆍinstantaneous_forward_rate(t) ≒ forward_rate(t, 1e-6, compounded="continuously")
         """
 
         t = np.fmax(t, 1e-6)
