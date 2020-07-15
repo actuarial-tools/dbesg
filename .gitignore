@@ -1,6 +1,3 @@
-build/
-build/**
-dbesg.egg-info/
-dist/
-dist/**
+build
+dist
 __pycache__
