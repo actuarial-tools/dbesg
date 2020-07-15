@@ -1,4 +1,4 @@
-build
-dist
-dbesg.egg-info
+build/
+dist/
+dbesg.egg-info/
 __pycache__
