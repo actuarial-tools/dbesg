@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize_scalar
+from .exceptions import *
 
 class SmithWilson:
     """
@@ -105,7 +106,7 @@ class SmithWilson:
         elif compounded == 'continuously':
             rate = -np.log(P)/t
         else:
-            raise Exception('compounded 입력 예외')
+            raise CompoundedError
         return rate
 
     def forward_rate(self, t, s, compounded='annually'):
@@ -122,7 +123,7 @@ class SmithWilson:
         elif compounded == 'continuously':
             rate = 1/s*np.log(self.discount_factor(t)/self.discount_factor(t+s))
         else:
-            raise Exception('compounded 입력 예외')
+            raise CompoundedError
         return rate
     
     def instantaneous_forward_rate(self, t, order=0):
@@ -140,7 +141,7 @@ class SmithWilson:
         elif order==1:
             rate = 1/self.discount_factor(t, 0)*(-self.discount_factor(t, 1)**2/self.discount_factor(t, 0)+self.discount_factor(t, 2))
         else:
-            raise Exception('유효한 order가 아닙니다.')
+            raise OrderError
         return rate
     
     def _wilson(self, t, u, alpha, order=0):
@@ -153,7 +154,7 @@ class SmithWilson:
             W = np.where(t < u, np.exp(-self.ufr*t-(alpha+self.ufr)*u)*(-(alpha**2+self.ufr**2)*np.sinh(alpha*t)+2*alpha*self.ufr*np.cosh(alpha*t)+alpha*self.ufr*(self.ufr*t-2)*np.exp(alpha*u)), \
                     np.exp(-self.ufr*u-(alpha+self.ufr)*t)*(alpha*self.ufr**2*u*np.exp(alpha*t)-(alpha+self.ufr)**2*np.sinh(alpha*u)))
         else:
-            raise Exception('유효한 order가 아닙니다.')
+            raise OrderError
         return W
 
 
@@ -211,7 +212,7 @@ class NelsonSiegel:
         elif compounded == 'continuously':
             pass
         else:
-            raise Exception('compounded 입력 예외')
+            raise CompoundedError
         return rate
     
     def discount_factor(self, t):
@@ -231,14 +232,14 @@ class NelsonSiegel:
             선도이자율(f(t, t+s))를 계산
         """
 
-        if s<0:
-            raise Exception("s < 0 예외")
+        if s<=0:
+            raise ValueError("s > 0 이어야 함")
         if compounded == 'annually':
             rate = (self.discount_factor(t)/self.discount_factor(t+s))**(1/s)-1
         elif compounded == 'continuously':
             rate = 1/s*np.log(self.discount_factor(t)/self.discount_factor(t+s))
         else:
-            raise Exception('compounded 입력 예외')
+            raise CompoundedError
         return rate
     
     def instantaneous_forward_rate(self, t):
