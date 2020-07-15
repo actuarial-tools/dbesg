@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
  
 setup(
     name="dbesg",
-    version="0.0.9",
+    version="0.0.10",
     author="Lee Sang Jin",
     author_email="lee3jjang@gmail.com",
     description="Economic Scenario Generator",

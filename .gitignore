@@ -2,3 +2,4 @@ build/
 dist/
 dbesg.egg-info/
 __pycache__
+.vscode/
