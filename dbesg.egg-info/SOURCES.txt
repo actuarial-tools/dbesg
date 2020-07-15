@@ -7,5 +7,5 @@ dbesg.egg-info/PKG-INFO
 dbesg.egg-info/SOURCES.txt
 dbesg.egg-info/dependency_links.txt
 dbesg.egg-info/top_level.txt
-tests/DBESGTestCase001.py
 tests/__init__.py
+tests/test_sample.py
