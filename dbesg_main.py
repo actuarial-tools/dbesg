@@ -7,6 +7,7 @@ import numpy as np
 from dbesg import SmithWilson, NelsonSiegel
 from datetime import datetime
 import logging
+import pandas as pd
 
 PATH = pathlib.Path(__file__).parent.absolute()
 
@@ -31,9 +32,30 @@ class DBEsgWindow(QMainWindow, form_class):
         self.btn_run.clicked.connect(self.run)
         self.btn_save.clicked.connect(self.save)
         self.btn_crawling.clicked.connect(self.crawling)
+        self.btn_loadfile.clicked.connect(self.load_file)
 
         self.spot = None
         self.forward = None
+
+    def load_file(self):
+        # 파일 불러오기
+        fname = QFileDialog.getOpenFileName(self, '파일 열기', '.')[0]
+        rf_interest_rate = pd.read_excel(fname).set_index('일자')
+        
+        # for date, row in rf_interest_rate.iterrows():
+        #     for value in row:
+        #         print(date, value)
+
+        # Table로 올리기
+        rows, cols = rf_interest_rate.shape
+        self.data.setRowCount(rows)
+        self.data.setColumnCount(cols)
+        self.data.setHorizontalHeaderLabels(rf_interest_rate.columns.map(lambda x: f'{x}년'))
+        self.data.setVerticalHeaderLabels(rf_interest_rate.index.map(lambda x: x.strftime('%Y.%m.%d')))
+        for r in range(rows):
+            for c in range(cols):
+                self.data.setItem(r, c, QTableWidgetItem(f"{round(rf_interest_rate.iloc[r, c], 3)}"))
+        self.data.resizeColumnsToContents()
 
     def crawling(self):
         os.system("python kofiabond.py")
@@ -52,7 +74,7 @@ class DBEsgWindow(QMainWindow, form_class):
             # logging
             log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
             logger.error("input value type error")
-            self.log.append(f"[{log_time}] input value type error")
+            print(f"[{log_time}] input value type error")
 
             return
 
@@ -69,14 +91,14 @@ class DBEsgWindow(QMainWindow, form_class):
         # logging
         log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
         logger.info(f"run success")
-        self.log.append(f"[{log_time}] run success")
+        print(f"[{log_time}] run success")
 
     def save(self):
         if type(self.spot) == type(None):
             # logging
             log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
             logger.warning("there is no value to save")    
-            self.log.append(f"[{log_time}] there is no value to save")
+            print(f"[{log_time}] there is no value to save")
 
             return
         else:
@@ -88,9 +110,9 @@ class DBEsgWindow(QMainWindow, form_class):
             # logging
             log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
             logger.info(f"save as \"{PATH}\\result\\forward_{now}.csv\"")
-            self.log.append(f"[{log_time}] save as \"{PATH}\\result\\forward_{now}.csv\"")
+            print(f"[{log_time}] save as \"{PATH}\\result\\forward_{now}.csv\"")
             logger.info(f"save as \"{PATH}\\result\\spot_{now}.csv\"")
-            self.log.append(f"[{log_time}] save as \"{PATH}\\result\\spot_{now}.csv\"")
+            print(f"[{log_time}] save as \"{PATH}\\result\\spot_{now}.csv\"")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
