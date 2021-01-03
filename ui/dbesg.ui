@@ -199,7 +199,7 @@
    <widget class="QPushButton" name="btn_run">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>30</x>
       <y>180</y>
       <width>75</width>
       <height>23</height>
@@ -222,7 +222,7 @@
    <widget class="QPushButton" name="btn_save">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>120</x>
       <y>180</y>
       <width>75</width>
       <height>23</height>
@@ -230,6 +230,19 @@
     </property>
     <property name="text">
      <string>저장</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_crawling">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>180</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>데이터수집</string>
     </property>
    </widget>
   </widget>

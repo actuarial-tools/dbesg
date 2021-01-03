@@ -30,9 +30,13 @@ class DBEsgWindow(QMainWindow, form_class):
 
         self.btn_run.clicked.connect(self.run)
         self.btn_save.clicked.connect(self.save)
+        self.btn_crawling.clicked.connect(self.crawling)
 
         self.spot = None
         self.forward = None
+
+    def crawling(self):
+        os.system("python kofiabond.py")
 
     def run(self):
         # get data

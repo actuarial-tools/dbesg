@@ -5,6 +5,9 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import shutil
 import pandas as pd
+import pathlib
+
+PATH = pathlib.Path(__file__).parent.absolute()
 
 driver = webdriver.Chrome('driver/chromedriver')
 
@@ -49,11 +52,17 @@ now = datetime.now().strftime('%Y%m%d%H%M%S')
 shutil.move(download_path + '/최종호가 수익률.xls', f'data/risk_free_interest_rate_{now}.xlsx')
 
 # 추가 가공
-rf_interest_rate = pd.read_excel(f'data/risk_free_interest_rate_{now}.xlsx')
+rf_interest_rate = pd.read_excel(f'{PATH}/data/risk_free_interest_rate_{now}.xlsx')
 rf_interest_rate = rf_interest_rate.set_index('일자')
 rf_interest_rate.columns = rf_interest_rate.columns.str.extract(r'(\d+)년')[0]
 rf_interest_rate = rf_interest_rate.drop(['최고', '최저'], axis=0)
 rf_interest_rate = rf_interest_rate.reset_index()
 rf_interest_rate['일자'] = rf_interest_rate['일자'].astype('datetime64[ns]')
-with pd.ExcelWriter(f'data/risk_free_interest_rate_{now}.xlsx') as writer:
+with pd.ExcelWriter(f'{PATH}/data/risk_free_interest_rate_{now}.xlsx') as writer:
     rf_interest_rate.to_excel(writer, index=False)
+
+# 로깅
+log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
+print(f"[{log_time}] save as \"{PATH}\\data\\risk_free_interest_rate_{now}.xlsx\"")
+
+driver.close()
