@@ -8,6 +8,8 @@ from dbesg import SmithWilson, NelsonSiegel
 from datetime import datetime
 import logging
 
+PATH = pathlib.Path(__file__).parent.absolute()
+
 # set logger
 logging.root.setLevel(logging.INFO)
 logger = logging.getLogger()
@@ -18,7 +20,7 @@ logger.addHandler(handler)
 
 
 form_class = uic.loadUiType(
-    os.path.join(pathlib.Path(__file__).parent.absolute(),
+    os.path.join(PATH,
     'ui', 'dbesg.ui'))[0]
 
 class DBEsgWindow(QMainWindow, form_class):
@@ -43,7 +45,10 @@ class DBEsgWindow(QMainWindow, form_class):
             yr30 = float(self.yr30.text())/100
             ltfr = float(self.ltfr.text())/100
         except ValueError:
+            # logging
             logger.error("input value type error")
+            self.log.append("input value type error")
+
             return
 
         # calculate spot, forward rate
@@ -58,15 +63,22 @@ class DBEsgWindow(QMainWindow, form_class):
 
     def save(self):
         if type(self.spot) == type(None):
+            # logging
             logger.warning("there is no value to save")
+            self.log.append("there is no value to save")
+
             return
         else:
             # export
             now = datetime.now().strftime('%Y%m%d%H%M%S')
-            np.savetxt(f"result/forward_{now}.csv", self.forward, delimiter=",")
-            np.savetxt(f"result/spot_{now}.csv", self.spot, delimiter=",")
-            logger.info(f"save as \"result/forward_{now}.csv\"")
-            logger.info(f"save as \"result/spot_{now}.csv\"")
+            np.savetxt(f"{PATH}\\result\\forward_{now}.csv", self.forward, delimiter=",")
+            np.savetxt(f"{PATH}\\result\\spot_{now}.csv", self.spot, delimiter=",")
+
+            # logging
+            logger.info(f"save as \"{PATH}\\result\\forward_{now}.csv\"")
+            self.log.append(f"save as \"{PATH}\\result\\forward_{now}.csv\"")
+            logger.info(f"save as \"{PATH}\\result\\spot_{now}.csv\"")
+            self.log.append(f"save as \"{PATH}\\result\\spot_{now}.csv\"")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
