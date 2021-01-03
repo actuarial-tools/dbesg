@@ -3,4 +3,4 @@ dist/
 dbesg.egg-info/
 __pycache__
 .vscode/
-result/*.csv
+result/*
