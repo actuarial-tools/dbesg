@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 from PyQt5 import uic
 import pathlib
 import os
@@ -8,7 +9,12 @@ from dbesg import SmithWilson, NelsonSiegel
 from datetime import datetime
 import logging
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
+# 환경설정
+plt.rcParams['font.family'] = 'Malgun Gothic'
+plt.rcParams['axes.unicode_minus'] = False
 PATH = pathlib.Path(__file__).parent.absolute()
 
 # set logger
@@ -36,14 +42,16 @@ class DBEsgWindow(QMainWindow, form_class):
         self.spot = None
         self.forward = None
 
+        fig, ax = plt.subplots(2, 1, figsize=(4, 4))
+        plt.savefig('img/tmp.png')
+        img_spot = QPixmap()
+        img_spot.load('img/tmp.png')
+        self.img_spot.setPixmap(img_spot)
+
     def load_file(self):
         # 파일 불러오기
         fname = QFileDialog.getOpenFileName(self, '파일 열기', '.')[0]
         rf_interest_rate = pd.read_excel(fname).set_index('일자')
-        
-        # for date, row in rf_interest_rate.iterrows():
-        #     for value in row:
-        #         print(date, value)
 
         # Table로 올리기
         rows, cols = rf_interest_rate.shape
@@ -96,6 +104,27 @@ class DBEsgWindow(QMainWindow, form_class):
         self.spot = sw.spot_rate(t)
         self.forward = sw.forward_rate(t, 1)
 
+        # visualization
+        fig, ax = plt.subplots(2, 1, figsize=(4, 4), sharex=True)
+        ax[0].scatter(maturity*12, rate*100, marker='x', s=50, color='black', label='data')
+        ax[0].plot(self.spot*100, label='SW', color='royalblue')
+        ax[1].plot(self.forward*100, label='SW', color='tomato')
+        ax[1].axhline(y=ltfr*100, linestyle='--', color='black', label=f'LTFR({ltfr*100:,.2f}%)')
+        ax[0].set_title('Spot Rate')
+        ax[1].set_title('Forward Rate')
+        ax[0].grid(True);ax[1].grid(True)
+        ax[0].legend();ax[1].legend()
+        ax[0].set_ylabel('금리(%)');ax[1].set_ylabel('금리(%)')
+        ax[1].set_xlabel('만기(월)')
+        ax[0].yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x:,.1f}'))
+        ax[1].yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x:,.1f}'))
+
+        plt.tight_layout()
+        plt.savefig('img/tmp.png')
+        img_spot = QPixmap()
+        img_spot.load('img/tmp.png')
+        self.img_spot.setPixmap(img_spot)
+
         # logging
         log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
         logger.info(f"run success")
@@ -114,6 +143,7 @@ class DBEsgWindow(QMainWindow, form_class):
             now = datetime.now().strftime('%Y%m%d%H%M%S')
             np.savetxt(f"{PATH}\\result\\forward_{now}.csv", self.forward, delimiter=",")
             np.savetxt(f"{PATH}\\result\\spot_{now}.csv", self.spot, delimiter=",")
+            plt.savefig(f'{PATH}\\result\\spot&forward_{now}.png')
 
             # logging
             log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
@@ -121,6 +151,8 @@ class DBEsgWindow(QMainWindow, form_class):
             print(f"[{log_time}] save as \"{PATH}\\result\\forward_{now}.csv\"")
             logger.info(f"save as \"{PATH}\\result\\spot_{now}.csv\"")
             print(f"[{log_time}] save as \"{PATH}\\result\\spot_{now}.csv\"")
+            logger.info(f"save as \"{PATH}\\result\\spot&forward_{now}.png\"")
+            print(f"[{log_time}] save as \"{PATH}\\result\\spot&forward_{now}.png\"")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

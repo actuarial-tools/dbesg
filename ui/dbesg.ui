@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>370</width>
+    <width>805</width>
     <height>471</height>
    </rect>
   </property>
@@ -258,13 +258,26 @@
      </rect>
     </property>
    </widget>
+   <widget class="QLabel" name="img_spot">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>10</y>
+      <width>411</width>
+      <height>411</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>370</width>
+     <width>805</width>
      <height>21</height>
     </rect>
    </property>
