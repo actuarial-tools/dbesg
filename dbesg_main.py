@@ -62,6 +62,11 @@ class DBEsgWindow(QMainWindow, form_class):
         self.spot = sw.spot_rate(t)
         self.forward = sw.forward_rate(t, 1)
 
+        # logging
+        log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
+        logger.info(f"run success")
+        self.log.append(f"[{log_time}] run success")
+
     def save(self):
         if type(self.spot) == type(None):
             # logging
