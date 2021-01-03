@@ -63,7 +63,6 @@ class DBEsgWindow(QMainWindow, form_class):
         else:
             raise Exception("model selection error")
 
-
     def load_file(self):
         # 파일 불러오기
         fname = QFileDialog.getOpenFileName(self, '파일 열기', 'data')[0]
