@@ -19,7 +19,6 @@ formatter = logging.Formatter("%(asctime)s %(levelname)s [%(filename)s:%(lineno)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-
 form_class = uic.loadUiType(
     os.path.join(PATH,
     'ui', 'dbesg.ui'))[0]
