@@ -13,9 +13,9 @@ download_path = r'C:\Users\{}\Downloads'.format(os.environ['USERNAME'])
 if any(['최종호가 수익률.xls' == s for s in os.listdir(download_path)]):
     os.remove(download_path + '/최종호가 수익률.xls')
 
-# result 파일 생성
-if not any(['result' == s for s in os.listdir('.')]):
-    os.mkdir('./result')
+# data 폴더 생성
+if not any(['data' == s for s in os.listdir('.')]):
+    os.mkdir('./data')
 
 url = 'http://www.kofiabond.or.kr/websquare/websquare.html?w2xPath=/xml/bondint/lastrop/BISLastAskPrc.xml&divisionId=MBIS01010010000000&serviceId=&topMenuIndex=0&w2xHome=/xml/'
 driver.get(url)
@@ -46,14 +46,14 @@ driver.find_element_by_css_selector('a#grpExcel').click()
 while(not any(['최종호가 수익률.xls' == s for s in os.listdir(download_path)])):
     time.sleep(1)
 now = datetime.now().strftime('%Y%m%d%H%M%S')
-shutil.move(download_path + '/최종호가 수익률.xls', f'result/risk_free_interest_rate_{now}.xlsx')
+shutil.move(download_path + '/최종호가 수익률.xls', f'data/risk_free_interest_rate_{now}.xlsx')
 
 # 추가 가공
-rf_interest_rate = pd.read_excel(f'result/risk_free_interest_rate_{now}.xlsx')
+rf_interest_rate = pd.read_excel(f'data/risk_free_interest_rate_{now}.xlsx')
 rf_interest_rate = rf_interest_rate.set_index('일자')
 rf_interest_rate.columns = rf_interest_rate.columns.str.extract(r'(\d+)년')[0]
 rf_interest_rate = rf_interest_rate.drop(['최고', '최저'], axis=0)
 rf_interest_rate = rf_interest_rate.reset_index()
 rf_interest_rate['일자'] = rf_interest_rate['일자'].astype('datetime64[ns]')
-with pd.ExcelWriter(f'result/risk_free_interest_rate_{now}.xlsx') as writer:
+with pd.ExcelWriter(f'data/risk_free_interest_rate_{now}.xlsx') as writer:
     rf_interest_rate.to_excel(writer, index=False)
