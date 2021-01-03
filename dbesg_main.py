@@ -56,6 +56,15 @@ class DBEsgWindow(QMainWindow, form_class):
             for c in range(cols):
                 self.data.setItem(r, c, QTableWidgetItem(f"{round(rf_interest_rate.iloc[r, c], 3)}"))
         self.data.resizeColumnsToContents()
+        self.data.cellDoubleClicked.connect(self.setData)
+
+    def setData(self, row):
+        self.yr1.setText(self.data.item(row, 0).text())
+        self.yr3.setText(self.data.item(row, 1).text())
+        self.yr5.setText(self.data.item(row, 2).text())
+        self.yr10.setText(self.data.item(row, 3).text())
+        self.yr20.setText(self.data.item(row, 4).text())
+        self.yr30.setText(self.data.item(row, 5).text())
 
     def crawling(self):
         os.system("python kofiabond.py")
