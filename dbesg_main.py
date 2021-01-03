@@ -21,7 +21,7 @@ if not any([s == 'result' for s in os.listdir('.')]): os.mkdir('result')
 if not any([s == 'data' for s in os.listdir('.')]): os.mkdir('data')
 
 # set logger
-logging.root.setLevel(logging.INFO)
+logging.root.setLevel(logging.ERROR)
 logger = logging.getLogger()
 handler = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s")
@@ -36,6 +36,9 @@ class DBEsgWindow(QMainWindow, form_class):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        self.model.addItem("SW")
+        self.model.addItem("NS")
 
         self.btn_run.clicked.connect(self.run)
         self.btn_save.clicked.connect(self.save)
@@ -69,12 +72,12 @@ class DBEsgWindow(QMainWindow, form_class):
         self.data.cellDoubleClicked.connect(self.setData)
 
     def setData(self, row):
-        self.yr1.setText(self.data.item(row, 0).text())
-        self.yr3.setText(self.data.item(row, 1).text())
-        self.yr5.setText(self.data.item(row, 2).text())
-        self.yr10.setText(self.data.item(row, 3).text())
-        self.yr20.setText(self.data.item(row, 4).text())
-        self.yr30.setText(self.data.item(row, 5).text())
+        self.yr1.setValue(float(self.data.item(row, 0).text()))
+        self.yr3.setValue(float(self.data.item(row, 1).text()))
+        self.yr5.setValue(float(self.data.item(row, 2).text()))
+        self.yr10.setValue(float(self.data.item(row, 3).text()))
+        self.yr20.setValue(float(self.data.item(row, 4).text()))
+        self.yr30.setValue(float(self.data.item(row, 5).text()))
 
     def crawling(self):
         os.system("python kofiabond.py")
@@ -82,13 +85,13 @@ class DBEsgWindow(QMainWindow, form_class):
     def run(self):
         # get data
         try:
-            yr1 = float(self.yr1.text())/100
-            yr3 = float(self.yr3.text())/100
-            yr5 = float(self.yr5.text())/100
-            yr10 = float(self.yr10.text())/100
-            yr20 = float(self.yr20.text())/100
-            yr30 = float(self.yr30.text())/100
-            ltfr = float(self.ltfr.text())/100
+            yr1 = self.yr1.value()/100
+            yr3 = self.yr3.value()/100
+            yr5 = self.yr5.value()/100
+            yr10 = self.yr10.value()/100
+            yr20 = self.yr20.value()/100
+            yr30 = self.yr30.value()/100
+            ltfr = self.ltfr.value()/100
         except ValueError:
             # logging
             log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
@@ -100,19 +103,32 @@ class DBEsgWindow(QMainWindow, form_class):
         # calculate spot, forward rate
         maturity = np.array([1, 3, 5, 10, 20, 30])
         rate = np.array([yr1, yr3, yr5, yr10, yr20, yr30])
-        alpha = 0.1
-        sw = SmithWilson(alpha, ltfr)
-        sw.set_params(maturity, rate)
-        t = np.linspace(0, 100, 1201)
-        self.spot = sw.spot_rate(t)
-        self.forward = sw.forward_rate(t, 1)
+        
+        if self.model.currentText() == "SW":
+            # Smith-Wilson Method
+            alpha = 0.1
+            sw = SmithWilson(alpha, ltfr)
+            sw.set_params(maturity, rate)
+            t = np.linspace(0, 100, 1201)
+            self.spot = sw.spot_rate(t)
+            self.forward = sw.forward_rate(t, 1)
+        elif self.model.currentText() == "NS":
+            # Nelson-Siegel Model
+            ns = NelsonSiegel()
+            ns.set_params(maturity, rate)
+            t = np.linspace(0, 100, 1201)
+            self.spot = ns.spot_rate(t)
+            self.forward = ns.forward_rate(t, 1/12)
+        else:
+            raise Exception("model selection error")
 
         # visualization
         fig, ax = plt.subplots(2, 1, figsize=(4, 4), sharex=True)
         ax[0].scatter(maturity*12, rate*100, marker='x', s=50, color='black', label='data')
         ax[0].plot(self.spot*100, label='SW', color='royalblue')
         ax[1].plot(self.forward*100, label='SW', color='tomato')
-        ax[1].axhline(y=ltfr*100, linestyle='--', color='black', label=f'LTFR({ltfr*100:,.2f}%)')
+        if self.model.currentText() == "SW":
+            ax[1].axhline(y=ltfr*100, linestyle='--', color='black', label=f'LTFR({ltfr*100:,.2f}%)')
         ax[0].set_title('Spot Rate')
         ax[1].set_title('Forward Rate')
         ax[0].grid(True);ax[1].grid(True)
