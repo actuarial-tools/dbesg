@@ -1,3 +1,6 @@
 1. kofiabond : 최종호가수익율 -> 시가평가수익률로 변경 필요
 2. 배포가능하게 설정
 3. merge
+
+git config --global user.email "lee3jjang@gmail.com"
+git config --global user.name "SangJin"
