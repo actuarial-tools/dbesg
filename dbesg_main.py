@@ -46,8 +46,9 @@ class DBEsgWindow(QMainWindow, form_class):
             ltfr = float(self.ltfr.text())/100
         except ValueError:
             # logging
+            log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
             logger.error("input value type error")
-            self.log.append("input value type error")
+            self.log.append(f"[{log_time}] input value type error")
 
             return
 
@@ -64,8 +65,9 @@ class DBEsgWindow(QMainWindow, form_class):
     def save(self):
         if type(self.spot) == type(None):
             # logging
-            logger.warning("there is no value to save")
-            self.log.append("there is no value to save")
+            log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
+            logger.warning("there is no value to save")    
+            self.log.append(f"[{log_time}] there is no value to save")
 
             return
         else:
@@ -75,10 +77,11 @@ class DBEsgWindow(QMainWindow, form_class):
             np.savetxt(f"{PATH}\\result\\spot_{now}.csv", self.spot, delimiter=",")
 
             # logging
+            log_time = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
             logger.info(f"save as \"{PATH}\\result\\forward_{now}.csv\"")
-            self.log.append(f"save as \"{PATH}\\result\\forward_{now}.csv\"")
+            self.log.append(f"[{log_time}] save as \"{PATH}\\result\\forward_{now}.csv\"")
             logger.info(f"save as \"{PATH}\\result\\spot_{now}.csv\"")
-            self.log.append(f"save as \"{PATH}\\result\\spot_{now}.csv\"")
+            self.log.append(f"[{log_time}] save as \"{PATH}\\result\\spot_{now}.csv\"")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
