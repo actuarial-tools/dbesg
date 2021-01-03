@@ -16,6 +16,9 @@ import matplotlib.ticker as ticker
 plt.rcParams['font.family'] = 'Malgun Gothic'
 plt.rcParams['axes.unicode_minus'] = False
 PATH = pathlib.Path(__file__).parent.absolute()
+if not any([s == 'img' for s in os.listdir('.')]): os.mkdir('img')
+if not any([s == 'result' for s in os.listdir('.')]): os.mkdir('result')
+if not any([s == 'data' for s in os.listdir('.')]): os.mkdir('data')
 
 # set logger
 logging.root.setLevel(logging.INFO)
