@@ -50,7 +50,7 @@ class DBEsgWindow(QMainWindow, form_class):
 
     def load_file(self):
         # 파일 불러오기
-        fname = QFileDialog.getOpenFileName(self, '파일 열기', '.')[0]
+        fname = QFileDialog.getOpenFileName(self, '파일 열기', 'data')[0]
         rf_interest_rate = pd.read_excel(fname).set_index('일자')
 
         # Table로 올리기
