@@ -44,6 +44,7 @@ class DBEsgWindow(QMainWindow, form_class):
         self.btn_save.clicked.connect(self.save)
         self.btn_crawling.clicked.connect(self.crawling)
         self.btn_loadfile.clicked.connect(self.load_file)
+        self.model.currentTextChanged.connect(self.ltfr_enabled)
 
         self.spot = None
         self.forward = None
@@ -53,6 +54,15 @@ class DBEsgWindow(QMainWindow, form_class):
         img_spot = QPixmap()
         img_spot.load('img/tmp.png')
         self.img_spot.setPixmap(img_spot)
+
+    def ltfr_enabled(self):
+        if self.model.currentText() == "NS":
+            self.ltfr.setEnabled(False)
+        elif self.model.currentText() == "SW":
+            self.ltfr.setEnabled(True)
+        else:
+            raise Exception("model selection error")
+
 
     def load_file(self):
         # 파일 불러오기
